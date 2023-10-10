@@ -33,7 +33,7 @@ class RegisterForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    """Form for registering a user."""
+    """Form for logging in a user."""
 
     username = StringField(
         "Username",

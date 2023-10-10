@@ -20,6 +20,8 @@ connect_db(app)
 app.config["SECRET_KEY"] = "I'LL NEVER TELL!!"
 debug = DebugToolbarExtension(app)
 
+USERNAME_KEY = "username"
+
 
 @app.get("/")
 def render_home_page():
@@ -51,7 +53,7 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        session["username"] = user.username
+        session[USERNAME_KEY] = user.username
 
         # on successful login, redirect to secret page
         return redirect(f"/users/{username}")
@@ -74,7 +76,7 @@ def login():
         user = User.authenticate(username, password)
 
         if user:
-            session["username"] = user.username
+            session[USERNAME_KEY] = user.username
             return redirect(f"/users/{user.username}")
 
         else:
@@ -87,19 +89,21 @@ def login():
 def display_user_page(username):
     """Displays specific page for a user"""
 
-    form = RegisterForm()
-    
     user = User.query.get_or_404(username)
-    if "username" not in session:
+
+    if USERNAME_KEY not in session:
         flash("You must be logged in to view profile!")
 
         return redirect("/login")
-    if username != session["username"]:
+    if username != session[USERNAME_KEY]:
         flash("This is not your profile")
 
-        return redirect("/login")
+        return redirect(f"/users/{session['username']}")
+
+    form = CSRFProtectForm()
 
     return render_template("user.html", user=user, form=form)
+
 
 @app.post("/logout")
 def logout_user():
@@ -108,7 +112,7 @@ def logout_user():
     form = CSRFProtectForm()
 
     if form.validate_on_submit():
-        session.pop("username", None)
-        flash("You are logged out.")
+        session.pop(USERNAME_KEY, None)
+        flash("You are logged out.", "success")
 
-    return redirect("/login")
+    return redirect("/")
