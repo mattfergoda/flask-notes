@@ -8,16 +8,22 @@
   <title>{% block title %} {% endblock %}</title>
 </head>
 <body>
+  <div class="navbar navbar-light bg-primary">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <a class="text-white" href="/">Notes!</a>
+      </div>
+    </div>
+  </div>
 
-{% for message in get_flashed_messages() %}
-    <p class="alert alert-danger">{{ message }}</p>
-{% endfor %}
+  <div class="container" style="margin-top: 2em">
+    {% for msg in get_flashed_messages() %}
+      <div class="alert alert-danger">{{ msg }}</div>
+    {% endfor %}
 
-
-
-{% block content %}
-
-{% endblock %}
+    {% block content %}
+    {% endblock %}
+  </div>
 
 
 </body>

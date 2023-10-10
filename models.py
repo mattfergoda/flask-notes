@@ -49,7 +49,7 @@ class User(db.Model):
 
     # start_authenticate
     @classmethod
-    def authenticate(cls, username, pwd):
+    def authenticate(cls, username, password):
         """Validate that user exists & password is correct.
 
         Return user if valid; else return False.

@@ -1,10 +1,10 @@
 """Flask app for Cupcakes"""
 import os
 
-from flask import Flask, request, redirect, render_template, jsonify, session
+from flask import Flask, redirect, render_template, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 
-from forms import CSRFProtectForm, RegisterForm
+from forms import CSRFProtectForm, RegisterForm, LoginForm
 from models import db, connect_db, User
 
 app = Flask(__name__)
@@ -34,20 +34,48 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        user_name = form.username.data
+        username = form.username.data
         password = form.password.data
         email = form.email.data
         first_name = form.first_name.data
         last_name = form.last_name.data
 
-        user = User.register(user_name, password, email, first_name, last_name)
+        # Check if username is already taken.
+        if User.query.filter(User.username == username).all():
+            flash(f"Username {username} already taken.")
+            return render_template("register.html", form=form)
+
+        user = User.register(username, password, email, first_name, last_name)
+
         db.session.add(user)
         db.session.commit()
 
-        session["user_id"] = user.id
+        session["username"] = user.username
 
         # on successful login, redirect to secret page
-        return redirect(f"/users/{user_name}")
+        return redirect(f"/users/{username}")
 
     else:
         return render_template("register.html", form=form)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Produce login form or handle login."""
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        # authenticate will return a user or False
+        user = User.authenticate(username, password)
+
+        if user:
+            session["username"] = user.username
+            return redirect(f"/users/{user.username}")
+
+        else:
+            flash("Incorrect name or password")
+
+    return render_template("login.html", form=form)
