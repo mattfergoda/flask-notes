@@ -13,7 +13,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
-app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = True
+app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
 
 connect_db(app)
 
@@ -86,6 +86,9 @@ def login():
 @app.get("/users/<username>")
 def display_user_page(username):
     """Displays specific page for a user"""
+
+    form = RegisterForm()
+    
     user = User.query.get_or_404(username)
     if "username" not in session:
         flash("You must be logged in to view profile!")
@@ -96,6 +99,16 @@ def display_user_page(username):
 
         return redirect("/login")
 
-    return render_template("user.html", user=user)
+    return render_template("user.html", user=user, form=form)
 
 @app.post("/logout")
+def logout_user():
+    """Logs user out and redirects to homepage."""
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        session.pop("username", None)
+        flash("You are logged out.")
+
+    return redirect("/login")

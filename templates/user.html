@@ -3,9 +3,14 @@
 {% block title %}{{user.username}}{% endblock %}
 
 {% block content %}
-  
+
 <h1>{{user.username}}</h1>
 <h3>{{user.first_name}} {{user.last_name}}</h3>
 <p>{{user.email}}</p>
+
+<form action="/logout" method="POST">
+    {{ form.hidden_tag() }}
+  <button class="btn btn-secondary my-2 my-sm-0" type="submit">Logout</button>
+</form>
 
 {% endblock %}
