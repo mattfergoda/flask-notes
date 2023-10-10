@@ -13,6 +13,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
+app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = True
 
 connect_db(app)
 
@@ -58,6 +59,7 @@ def register():
     else:
         return render_template("register.html", form=form)
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Produce login form or handle login."""
@@ -79,3 +81,21 @@ def login():
             flash("Incorrect name or password")
 
     return render_template("login.html", form=form)
+
+
+@app.get("/users/<username>")
+def display_user_page(username):
+    """Displays specific page for a user"""
+    user = User.query.get_or_404(username)
+    if "username" not in session:
+        flash("You must be logged in to view profile!")
+
+        return redirect("/login")
+    if username != session["username"]:
+        flash("This is not your profile")
+
+        return redirect("/login")
+
+    return render_template("user.html", user=user)
+
+@app.post("/logout")
