@@ -47,7 +47,7 @@ def register():
         session["user_id"] = user.id
 
         # on successful login, redirect to secret page
-        return redirect("/users/username")
+        return redirect(f"/users/{user_name}")
 
     else:
         return render_template("register.html", form=form)
