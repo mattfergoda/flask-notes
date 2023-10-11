@@ -129,5 +129,7 @@ def add_note(username):
         return redirect("/login")
     if username != session[USERNAME_KEY]:
         raise Unauthorized
+    
+    if form.validate_on_submit():
 
     return render_template(f"/users/{username}", form=form)
