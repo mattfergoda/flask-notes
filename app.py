@@ -3,6 +3,7 @@ import os
 
 from flask import Flask, redirect, render_template, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
+from werkzeug.exceptions import Unauthorized
 
 from forms import CSRFProtectForm, RegisterForm, LoginForm
 from models import db, connect_db, User
@@ -116,3 +117,17 @@ def logout_user():
         flash("You are logged out.", "success")
 
     return redirect("/")
+
+
+@app.route("/users/<username>/notes/add", methods=["GET", "POST"])
+def add_note(username):
+    form = AddNoteForm()
+
+    if USERNAME_KEY not in session:
+        flash("You must be logged in to view profile!")
+
+        return redirect("/login")
+    if username != session[USERNAME_KEY]:
+        raise Unauthorized
+
+    return render_template(f"/users/{username}", form=form)

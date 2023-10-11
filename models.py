@@ -29,6 +29,8 @@ class User(db.Model):
 
     last_name = db.Column(db.String(30), nullable=False)
 
+    notes = db.relationship("Note", backref="user")
+
     # start_register
     @classmethod
     def register(cls, username, password, email, first_name, last_name):
@@ -62,3 +64,29 @@ class User(db.Model):
             return u
         else:
             return False
+
+
+class Note(db.Model):
+    """Note"""
+
+    __tablename__ = "notes"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+    )
+
+    title = db.Column(
+        db.String(100),
+        nullable=False,
+    )
+
+    content = db.Column(
+        db.Text(),
+        nullable=False,
+    )
+
+    owner_username = db.Column(
+        db.String(30),
+        db.ForeignKey("users.username"),
+    )
