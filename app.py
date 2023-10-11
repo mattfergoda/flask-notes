@@ -118,9 +118,13 @@ def logout_user():
 
     return redirect("/")
 
+
 @app.post("/users/<username>/delete")
 def handle_deleting_user(username):
     """Deletes user from database and logs user out."""
+
+    if username != session.get(USERNAME_KEY):
+        raise Unauthorized
 
     form = CSRFProtectForm()
 
@@ -133,7 +137,7 @@ def handle_deleting_user(username):
 
         flash("User has been deleted.", "success")
 
-    return redirect('/')
+    return redirect("/")
 
 
 @app.route("/users/<username>/notes/add", methods=["GET", "POST"])
@@ -146,9 +150,6 @@ def add_note(username):
         return redirect("/login")
     if username != session[USERNAME_KEY]:
         raise Unauthorized
-    
-    if form.validate_on_submit():
-
     # User.query.get_or_404(username)
 
     form = AddNoteForm()
@@ -166,5 +167,31 @@ def add_note(username):
 
         return redirect(f"/users/{username}")
 
+    return render_template("add_note.html", form=form)
+
+
+@app.route("/notes/<int:note_id>/update", methods=["GET", "POST"])
+def update_note(note_id):
+    """Display update note form or handle update note submit."""
+
+    note = Note.query.get_or_404(note_id)
+
+    if note.user.username != session.get(USERNAME_KEY):
+        raise Unauthorized
+
+    form = AddNoteForm(obj=note)
+
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+
+        note.title = title or note.title
+        note.content = content or note.content
+
+        db.session.commit()
+
+        flash("Note updated successfully", "success")
+
+        return redirect(f"/users/{note.user.username}")
 
     return render_template("add_note.html", form=form)
