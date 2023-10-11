@@ -9,23 +9,28 @@
 <p>{{user.email}}</p>
 
 <form action="/logout" method="POST">
-   <a class="btn btn-secondary my-2 my-sm-0" 
+   <a class="btn btn-secondary my-2 my-sm-0"
     href="/users/{{user.username}}/notes/add">Add</a>
     {{ form.hidden_tag() }}
   <button class="btn btn-secondary my-2 my-sm-0" type="submit">Logout</button>
 </form>
+
+<form action="/users/{{user.username}}/delete" method="POST">
+  {{ form.hidden_tag() }}
+<button class="btn btn-secondary my-2 my-sm-0" type="submit">Delete</button>
+</form>
+
 <h1>Notes</h1>
 
 {% for note in user.notes %}
     <h2>{{note.title}}</h2>
     <p>{{note.content}}</p>
-    <a class="btn btn-secondary my-2 my-sm-0" 
-    href="/users/{{user.username}}/edit">Edit</a>
-
-    <form action="/users/{{user.username}}/delete" method="POST">
-        {{ form.hidden_tag() }}
-      <button class="btn btn-secondary my-2 my-sm-0" type="submit">Delete</button>
+    <a class="btn btn-secondary my-2 my-sm-0"
+    href="/notes/{{note.id}}/update">Edit</a>
+    <form action="/notes/{{note.id}}/delete" method="POST">
+      {{ form.hidden_tag() }}
     </form>
+
 {% endfor %}
 
 {% endblock %}
