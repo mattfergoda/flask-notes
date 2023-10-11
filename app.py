@@ -5,8 +5,8 @@ from flask import Flask, redirect, render_template, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import Unauthorized
 
-from forms import CSRFProtectForm, RegisterForm, LoginForm
-from models import db, connect_db, User
+from forms import CSRFProtectForm, RegisterForm, LoginForm, AddNoteForm
+from models import db, connect_db, User, Note
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
@@ -81,7 +81,7 @@ def login():
             return redirect(f"/users/{user.username}")
 
         else:
-            flash("Incorrect name or password")
+            flash("Incorrect name or password", "danger")
 
     return render_template("login.html", form=form)
 
@@ -93,11 +93,11 @@ def display_user_page(username):
     user = User.query.get_or_404(username)
 
     if USERNAME_KEY not in session:
-        flash("You must be logged in to view profile!")
+        flash("You must be logged in to view profile!", "danger")
 
         return redirect("/login")
     if username != session[USERNAME_KEY]:
-        flash("This is not your profile")
+        flash("This is not your profile", "danger")
 
         return redirect(f"/users/{session['username']}")
 
@@ -118,16 +118,51 @@ def logout_user():
 
     return redirect("/")
 
+@app.post("/users/<username>/delete")
+def handle_deleting_user(username):
+    """Deletes user from database and logs user out."""
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        session.pop(USERNAME_KEY, None)
+
+        user = User.query.get_or_404(username)
+        db.session.delete(user)
+        db.session.commit()
+
+        flash("User has been deleted.", "success")
+
+    return redirect('/')
+
 
 @app.route("/users/<username>/notes/add", methods=["GET", "POST"])
 def add_note(username):
-    form = AddNoteForm()
+    """Display new note form or handle new note submit."""
 
     if USERNAME_KEY not in session:
-        flash("You must be logged in to view profile!")
+        flash("You must be logged in to view profile!", "danger")
 
         return redirect("/login")
     if username != session[USERNAME_KEY]:
         raise Unauthorized
 
-    return render_template(f"/users/{username}", form=form)
+    # User.query.get_or_404(username)
+
+    form = AddNoteForm()
+
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+
+        note = Note(title=title, content=content, owner_username=username)
+
+        db.session.add(note)
+        db.session.commit()
+
+        flash("Note added successfully", "success")
+
+        return redirect(f"/users/{username}")
+
+
+    return render_template("add_note.html", form=form)
